@@ -7,7 +7,7 @@ description: >
 compatibility: Supports macOS (Keychain), Windows (Credential Manager), and Linux (keyutils/Secret Service).
 metadata:
   author: tadejstanic
-  version: "0.2"
+  version: "0.1.0"
 ---
 
 The binary is located at `./linear-skill` relative to this file. All commands below use `./linear-skill` — resolve the path relative to the directory containing this SKILL.md.
