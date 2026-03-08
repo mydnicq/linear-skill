@@ -1,13 +1,12 @@
 ---
 name: linear-skill
-description: >
-  Query Linear's GraphQL API from the command line. Search issues, list teams,
-  create and update issues, and run arbitrary GraphQL queries. Use when the user
-  mentions Linear, issues, sprints, or project management tasks that involve Linear.
+description: Query Linear's GraphQL API from the command line. Search issues, list teams, create and update issues, and run arbitrary GraphQL queries. Use when the user mentions Linear, issues, sprints, or project management tasks that involve Linear.
 compatibility: Supports macOS (Keychain), Windows (Credential Manager), and Linux (keyutils/Secret Service).
 metadata:
-  author: tadejstanic
-  version: "0.1.0"
+  author: Tadej Stanic
+  version: '0.1.0'
+  source: https://github.com/mydnicq/linear-skill
+  license: MIT
 ---
 
 The binary is located at `./linear-skill` relative to this file. All commands below use `./linear-skill` — resolve the path relative to the directory containing this SKILL.md.
@@ -50,87 +49,42 @@ Output is raw JSON on stdout. Errors go to stderr.
 
 Use plain `--query` only for simple queries that contain no exclamation marks (e.g. `{ viewer { id name } }`).
 
-**The identifier field is not a valid IssueFilter field.** To fetch an issue by its human-readable identifier (e.g. WEB-385), split it into team key and number and filter with: `{"filter": {"number": {"eq": 385}, "team": {"key": {"eq": "WEB"}}}}`.
+## Memory
 
-## Common Queries
-
-All parameterized queries below use `--query-base64`. The base64 value encodes the full GraphQL query string including exclamation marks for non-null types.
-
-### Current user
-
-```bash
-./linear-skill query --query '{ viewer { id name email } }'
-```
-
-### List teams
-
-```bash
-./linear-skill query --query '{ teams { nodes { id name key } } }'
-```
-
-### Issues assigned to me
-
-```bash
-./linear-skill query --query '{ viewer { assignedIssues(first: 20) { nodes { id identifier title state { name } priority } } } }'
-```
-
-### Search issues
-
-```bash
-./linear-skill query --query-base64 'cXVlcnkoJHRlcm06IFN0cmluZyEpIHsgc2VhcmNoSXNzdWVzKHRlcm06ICR0ZXJtLCBmaXJzdDogMTApIHsgbm9kZXMgeyBpZCBpZGVudGlmaWVyIHRpdGxlIHN0YXRlIHsgbmFtZSB9IH0gfSB9' --variables '{"term": "bug"}'
-```
-
-Decoded: query($term: String NON-NULL) { searchIssues(term: $term, first: 10) { nodes { id identifier title state { name } } } }
-
-### Fetch issue by identifier
-
-```bash
-./linear-skill query --query-base64 'cXVlcnkoJGZpbHRlcjogSXNzdWVGaWx0ZXIhKSB7IGlzc3VlcyhmaWx0ZXI6ICRmaWx0ZXIsIGZpcnN0OiAxKSB7IG5vZGVzIHsgaWQgaWRlbnRpZmllciB0aXRsZSBkZXNjcmlwdGlvbiBzdGF0ZSB7IG5hbWUgfSBwcmlvcml0eSBhc3NpZ25lZSB7IG5hbWUgfSBsYWJlbHMgeyBub2RlcyB7IG5hbWUgfSB9IGNyZWF0ZWRBdCB1cGRhdGVkQXQgfSB9IH0=' --variables '{"filter": {"number": {"eq": 385}, "team": {"key": {"eq": "WEB"}}}}'
-```
-
-Decoded: query($filter: IssueFilter NON-NULL) { issues(filter: $filter, first: 1) { nodes { id identifier title description state { name } priority assignee { name } labels { nodes { name } } createdAt updatedAt } } }
-
-### Workflow states for a team
-
-```bash
-./linear-skill query --query-base64 'cXVlcnkoJHRlYW1JZDogU3RyaW5nISkgeyB0ZWFtKGlkOiAkdGVhbUlkKSB7IHN0YXRlcyB7IG5vZGVzIHsgaWQgbmFtZSB0eXBlIH0gfSB9IH0=' --variables '{"teamId": "TEAM_ID"}'
-```
-
-Decoded: query($teamId: String NON-NULL) { team(id: $teamId) { states { nodes { id name type } } } }
-
-### Create an issue
-
-```bash
-./linear-skill query --query-base64 'bXV0YXRpb24oJGlucHV0OiBJc3N1ZUNyZWF0ZUlucHV0ISkgeyBpc3N1ZUNyZWF0ZShpbnB1dDogJGlucHV0KSB7IHN1Y2Nlc3MgaXNzdWUgeyBpZCBpZGVudGlmaWVyIHRpdGxlIHVybCB9IH0gfQ==' --variables '{"input": {"teamId": "TEAM_ID", "title": "Issue title", "description": "Description"}}'
-```
-
-Decoded: mutation($input: IssueCreateInput NON-NULL) { issueCreate(input: $input) { success issue { id identifier title url } } }
-
-### Update an issue
-
-```bash
-./linear-skill query --query-base64 'bXV0YXRpb24oJGlkOiBTdHJpbmchLCAkaW5wdXQ6IElzc3VlVXBkYXRlSW5wdXQhKSB7IGlzc3VlVXBkYXRlKGlkOiAkaWQsIGlucHV0OiAkaW5wdXQpIHsgc3VjY2VzcyBpc3N1ZSB7IGlkIHRpdGxlIHN0YXRlIHsgbmFtZSB9IH0gfSB9' --variables '{"id": "ISSUE_ID", "input": {"stateId": "STATE_ID"}}'
-```
-
-Decoded: mutation($id: String NON-NULL, $input: IssueUpdateInput NON-NULL) { issueUpdate(id: $id, input: $input) { success issue { id title state { name } } } }
+**Before writing any GraphQL query, you MUST read [references/memory/index.md](references/memory/index.md).** It contains working, tested queries from past sessions. If a matching query exists, use it directly — do not reconstruct it from scratch.
 
 ## Self-Reflection Protocol
 
-**After every interaction with linear-skill, you MUST follow this protocol:**
+**After every interaction with linear-skill, you MUST follow this protocol.**
 
-1. **Check for errors.** If any CLI call failed or returned unexpected results, analyze the root cause.
-2. **Classify the error.** Determine if the cause is:
-   - Shell/environment (escaping, quoting, PATH issues)
-   - GraphQL (wrong field names, missing required arguments, schema changes)
-   - Auth/network (expired key, rate limits, connectivity)
-   - Usage (wrong flags, malformed JSON variables)
-3. **Update this file.** If the error is not already documented in the **Shell Pitfalls** section above, append a new entry describing:
-   - The symptom (exact error message or behavior)
-   - The root cause
-   - The workaround or correct approach
-4. **Keep it concise.** Each entry should be 2-4 lines. Remove entries that are superseded by better solutions.
+**MANDATORY FIRST STEP:** Before doing anything else in this section, output the following text verbatim to the user:
 
-This ensures lessons learned are always available for future calls, preventing the same mistake twice.
+> "Running Self-Reflection Protocol... [linear-skill]"
+
+Then work through each checkpoint below. **Do not skip a checkpoint — explicitly decide YES or NO for each one, and take the required action before moving to the next.**
+
+### Checkpoint 1 — New query pattern
+
+Was a GraphQL query used that is **not** already listed in the Common Queries table?
+
+- **YES →** You MUST complete **both** sub-actions before finishing:
+  1. **Create** `references/memory/<slug>.md` using the same structure as `current_user.md` (title, one-line description, decoded GraphQL block, bash command).
+  2. **Edit `references/memory/index.md`** to add a row to the index table linking to the new reference file.
+  - Do not say "I'll note it" or defer — use the Write and Edit tools now.
+- **NO →** Write "No new query patterns. [linear-skill]" and continue.
+
+### Checkpoint 2 — Errors
+
+Did any CLI call fail or return unexpected results?
+
+- **YES →** For each error, decide: was it a dead-end that led to a working query now documented in Checkpoint 1?
+  - **If yes** → skip the pitfall entry. The Common Queries reference is the correct fix; a pitfall warning is redundant.
+  - **If no** → classify the root cause (shell/environment, GraphQL schema, auth/network, or usage), then **immediately** append a new entry to the **Shell Pitfalls** section (2–4 lines: symptom, root cause, workaround). Remove any entry the new one supersedes.
+- **NO →** Write "No errors. [linear-skill]" and continue.
+
+### Checkpoint 3 — Done
+
+Confirm: "Self-Reflection Protocol complete. [linear-skill]"
 
 ## Reference
 
