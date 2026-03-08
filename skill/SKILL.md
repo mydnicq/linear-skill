@@ -21,15 +21,18 @@ bash ./install.sh
 
 This downloads the correct binary for the current OS and architecture.
 
-The API key is stored in the OS credential store (macOS Keychain, Windows Credential Manager, or Linux keyutils/Secret Service) — agents cannot read it.
+The API key is stored in the OS credential store (macOS Keychain, Windows Credential Manager, or Linux keyutils/Secret Service) — agents cannot read it. Keys are scoped to the directory where `auth` is run, so different projects can use different Linear workspaces.
 
 ## Setup (human only)
 
+Run `auth` **from the directory containing the `linear-skill` binary**:
+
 ```bash
+cd /path/to/linear-skill/directory
 ./linear-skill auth
 ```
 
-You will be prompted to enter your Linear API key (hidden input). Get one from **Linear → Settings → API → Personal API keys**.
+You will be prompted to enter your Linear API key (hidden input). Get one from **Linear → Settings → API → Personal API keys**. The key is stored for the current directory only — repeat for each project that needs a different key.
 
 ## Usage
 

@@ -3,9 +3,9 @@ use base64::Engine as _;
 use base64::engine::general_purpose::STANDARD;
 use clap::{Parser, Subcommand};
 use serde_json::Value;
+use std::env;
 use std::process;
 
-const KEYRING_SERVICE: &str = "linear-skill";
 const KEYRING_USER: &str = "api-key";
 const LINEAR_API_URL: &str = "https://api.linear.app/graphql";
 
@@ -41,28 +41,44 @@ enum Command {
     },
 }
 
+/// Returns a project-scoped keyring service name: `"linear-skill:{canonical_binary_dir}"`.
+/// Using the path in the service field makes each entry visually distinct in Keychain Access.
+fn keyring_service() -> Result<String> {
+    let exe = env::current_exe().context("Failed to determine binary location")?;
+    let dir = exe.parent().context("Binary has no parent directory")?;
+    let path = dir.canonicalize().unwrap_or_else(|_| dir.to_path_buf());
+    Ok(format!("linear-skill:{}", path.display()))
+}
+
 fn cmd_auth() -> Result<()> {
+    let service = keyring_service()?;
     eprintln!("Enter your Linear API key (input is hidden):");
     let key = rpassword::read_password().context("Failed to read API key")?;
     let key = key.trim();
     if key.is_empty() {
         bail!("API key cannot be empty");
     }
-    let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER)
-        .context("Failed to create keyring entry")?;
+    let entry =
+        keyring::Entry::new(&service, KEYRING_USER).context("Failed to create keyring entry")?;
     entry
         .set_password(key)
         .context("Failed to store API key in keychain")?;
-    println!("API key stored successfully.");
+    let exe = env::current_exe().unwrap_or_default();
+    let dir = exe.parent().map(|p| p.to_path_buf()).unwrap_or_default();
+    println!(
+        "API key stored for project directory: {}",
+        dir.canonicalize().unwrap_or(dir).display()
+    );
     Ok(())
 }
 
 fn cmd_query(query: &str, variables: Option<&str>) -> Result<()> {
-    let entry = keyring::Entry::new(KEYRING_SERVICE, KEYRING_USER)
-        .context("Failed to access keyring")?;
-    let api_key = entry
-        .get_password()
-        .context("No API key found. Run `linear-skill auth` first to store your key.")?;
+    let service = keyring_service()?;
+    let entry =
+        keyring::Entry::new(&service, KEYRING_USER).context("Failed to access keyring")?;
+    let api_key = entry.get_password().context(
+        "No API key found for this project directory. Run `linear-skill auth` from this directory first.",
+    )?;
 
     let mut body = serde_json::json!({ "query": query });
     if let Some(vars) = variables {
