@@ -53,7 +53,7 @@ fn cmd_auth() -> Result<()> {
     entry
         .set_password(key)
         .context("Failed to store API key in keychain")?;
-    eprintln!("API key stored successfully.");
+    println!("API key stored successfully.");
     Ok(())
 }
 
