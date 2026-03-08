@@ -4,7 +4,7 @@ description: Query Linear's GraphQL API from the command line. Search issues, li
 compatibility: Supports macOS (Keychain), Windows (Credential Manager), and Linux (keyutils/Secret Service).
 metadata:
   author: Tadej Stanic
-  version: '0.1.0'
+  version: '0.2.0'
   source: https://github.com/mydnicq/linear-skill
   license: MIT
 ---
