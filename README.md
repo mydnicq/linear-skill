@@ -12,28 +12,26 @@ Read more: [You probably don't need MCP](https://tadejstanic.dev/blog/you-probab
 
 **1. Download the skill**
 
-Navigate to your agent skills directory, then download the skill:
+Clone the repo and copy the skill folder into your agent skills directory:
 
 ```bash
-cd path/to/your/agent/skills
-wget -r -np -nH --cut-dirs=2 -P linear-skill \
-  https://github.com/mydnicq/linear-skill/trunk/skill
+git clone https://github.com/mydnicq/linear-skill.git
+cp -r linear-skill/skill path/to/your/agent/skills/linear-skill
+cd path/to/your/agent/skills/linear-skill
 ```
 
 **2. Install the binary**
 
 ```bash
-bash linear-skill/install.sh
+bash install.sh
 ```
 
 This downloads the correct binary for your OS and architecture (macOS arm64/amd64, Linux amd64, Windows amd64) from the latest GitHub release.
 
 **3. Authenticate**
 
-Run `auth` from the skill directory:
-
 ```bash
-linear-skill/linear-skill auth
+./linear-skill auth
 ```
 
 You will be prompted for your Linear API key (hidden input). Get one from **Linear → Settings → API → Personal API keys**.
