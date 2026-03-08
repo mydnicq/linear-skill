@@ -20,13 +20,15 @@ cp -r linear-skill/skill path/to/your/agent/skills/linear-skill
 cd path/to/your/agent/skills/linear-skill
 ```
 
-**2. Install the binary**
+**2. Install the skill**
 
-```bash
-bash install.sh
+Start a new agent session in your project and prompt:
+
+```
+Install the linear skill
 ```
 
-This downloads the correct binary for your OS and architecture (macOS arm64/amd64, Linux amd64, Windows amd64) from the latest GitHub release.
+The agent will detect the skill, run `scripts/install.sh` automatically, and download the correct binary for your OS and architecture.
 
 **3. Authenticate**
 

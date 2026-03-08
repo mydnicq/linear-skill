@@ -16,7 +16,7 @@ The binary is located at `./linear-skill` relative to this file. All commands be
 Before first use, check if `./linear-skill` exists. If not, run:
 
 ```bash
-bash ./install.sh
+bash ./scripts/install.sh
 ```
 
 This downloads the correct binary for the current OS and architecture.

@@ -40,7 +40,7 @@ if [ -z "$tag" ]; then
 fi
 
 url="https://github.com/${REPO}/releases/download/${tag}/${artifact}"
-dest="${SCRIPT_DIR}/${binary_name}"
+dest="${SCRIPT_DIR}/../${binary_name}"
 
 echo "Downloading ${artifact} (${tag})..."
 curl -sfL -o "$dest" "$url"
