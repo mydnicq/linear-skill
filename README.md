@@ -1,0 +1,68 @@
+# linear-skill
+
+An agent skill that lets you query Linear's GraphQL API directly from the command line — search issues, list teams, create and update issues, and run arbitrary GraphQL queries.
+
+## Motivation
+
+MCP servers are often overkill. This project demonstrates a simpler approach: a self-contained skill that gives an agent everything it needs to interact with Linear without spinning up a separate server process.
+
+Read more: [You probably don't need MCP](https://tadejstanic.dev/blog/you-probably-dont-need-mcp/)
+
+## Installation
+
+**1. Download the skill**
+
+Navigate to your agent skills directory, then download the skill:
+
+```bash
+cd path/to/your/agent/skills
+wget -r -np -nH --cut-dirs=2 -P linear-skill \
+  https://github.com/mydnicq/linear-skill/trunk/skill
+```
+
+**2. Install the binary**
+
+```bash
+bash linear-skill/install.sh
+```
+
+This downloads the correct binary for your OS and architecture (macOS arm64/amd64, Linux amd64, Windows amd64) from the latest GitHub release.
+
+**3. Authenticate**
+
+Run `auth` from the skill directory:
+
+```bash
+linear-skill/linear-skill auth
+```
+
+You will be prompted for your Linear API key (hidden input). Get one from **Linear → Settings → API → Personal API keys**.
+
+The key is stored in your OS credential store (macOS Keychain, Windows Credential Manager, or Linux keyutils/Secret Service) and scoped to the directory — different projects can use different Linear workspaces.
+
+## Usage
+
+Once installed, the agent will automatically use the skill when you mention Linear, issues, sprints, or project management tasks. The skill instructs the agent to:
+
+- Search and filter issues
+- List teams and projects
+- Create and update issues
+- Run arbitrary GraphQL queries against the Linear API
+
+## Platform Support
+
+| OS      | Architecture       |
+|---------|--------------------|
+| macOS   | arm64, amd64       |
+| Linux   | amd64              |
+| Windows | amd64              |
+
+## TODO
+
+- [ ] Self-update logic
+- [ ] Research options for built-in semantic search of Linear's GraphQL schema
+- [ ] Distribute the skill via npm
+
+## License
+
+MIT — see [LICENSE](LICENSE)
