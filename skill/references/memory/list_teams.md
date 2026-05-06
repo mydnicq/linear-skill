@@ -1,9 +1,9 @@
-# Current User
+# List Teams
 
-Returns the authenticated user's id, name, and email.
+Returns all teams with their id, name, and key.
 
 Write the following to a file and run `./linear-skill query --query-file <path>`:
 
 ```graphql
-{ viewer { id name email } }
+{ teams { nodes { id name key } } }
 ```

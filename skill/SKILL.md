@@ -36,21 +36,36 @@ You will be prompted to enter your Linear API key (hidden input). Get one from *
 
 ## Usage
 
-```bash
-# Plain text query (only for queries without exclamation marks)
-./linear-skill query --query '<graphql>' [--variables '<json>']
+**Step 1 — Get a temp file path:**
 
-# Base64-encoded query (recommended — always shell-safe)
-./linear-skill query --query-base64 '<base64>' [--variables '<json>']
+```bash
+./linear-skill temp-path
+# Outputs a unique path in the OS temp directory, e.g. /tmp/linear-skill-a1b2c3.graphql
+```
+
+**Step 2 — Write your GraphQL query to that file.** The file format is the GraphQL query, with an optional `---` delimiter followed by JSON variables:
+
+```
+query { viewer { id name } }
+
+---
+
+{"teamId": "abc123"}
+```
+
+If there is no `---` delimiter, the entire file is treated as a query with no variables.
+
+**Step 3 — Execute:**
+
+```bash
+./linear-skill query --query-file <path>
 ```
 
 Output is raw JSON on stdout. Errors go to stderr.
 
 ## Shell Pitfalls
 
-**Always use `--query-base64` for parameterized queries.** GraphQL non-null types require an exclamation mark suffix which shells escape. Base64 encoding eliminates this problem entirely. Compute the base64 string yourself and pass it via `--query-base64`.
-
-Use plain `--query` only for simple queries that contain no exclamation marks (e.g. `{ viewer { id name } }`).
+GraphQL queries often contain characters that shells interpret (e.g., `$`, `{`, `}`). Always write the query to a file first and use `--query-file` — this avoids all escaping issues.
 
 ## Memory
 

@@ -57,6 +57,10 @@ Once installed, the agent will automatically use the skill when you mention Line
 | Linux   | amd64              |
 | Windows | amd64              |
 
+## Releasing
+
+Use the `release` agent skill — it handles version bumping, tagging, and pushing. The `v*` tag triggers a GitHub Actions workflow that builds cross-platform binaries and publishes a GitHub Release.
+
 ## TODO
 
 - [ ] Self-update logic

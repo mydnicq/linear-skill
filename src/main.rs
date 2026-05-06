@@ -1,10 +1,10 @@
 use anyhow::{Context, Result, bail};
-use base64::Engine as _;
-use base64::engine::general_purpose::STANDARD;
 use clap::{Parser, Subcommand};
 use serde_json::Value;
 use std::env;
+use std::fs;
 use std::process;
+use uuid::Uuid;
 
 const KEYRING_USER: &str = "api-key";
 const LINEAR_API_URL: &str = "https://api.linear.app/graphql";
@@ -25,19 +25,14 @@ enum Command {
     )]
     Auth,
 
+    /// Print a unique file path in the OS temp directory for writing query files.
+    TempPath,
+
     /// Execute a GraphQL query against Linear's API.
     Query {
-        /// GraphQL query string (plain text)
-        #[arg(long, group = "query_input")]
-        query: Option<String>,
-
-        /// GraphQL query as a base64-encoded string (shell-safe)
-        #[arg(long, group = "query_input")]
-        query_base64: Option<String>,
-
-        /// Optional JSON variables for the query
+        /// Path to a file containing the GraphQL query (and optional variables separated by `---`)
         #[arg(long)]
-        variables: Option<String>,
+        query_file: String,
     },
 }
 
@@ -133,24 +128,38 @@ fn main() {
     let cli = Cli::parse();
     let result = match &cli.command {
         Command::Auth => cmd_auth(),
-        Command::Query {
-            query,
-            query_base64,
-            variables,
-        } => {
-            let query_str = match (query, query_base64) {
-                (Some(q), _) => q.clone(),
-                (_, Some(b64)) => {
-                    let bytes = STANDARD
-                        .decode(b64)
-                        .expect("Invalid base64 in --query-base64");
-                    String::from_utf8(bytes).expect("Query is not valid UTF-8")
-                }
-                _ => {
-                    eprintln!("Error: either --query or --query-base64 is required");
+        Command::TempPath => {
+            let dir = env::temp_dir();
+            let path = dir.join(format!("linear-skill-{}.graphql", Uuid::new_v4()));
+            println!("{}", path.display());
+            return;
+        }
+        Command::Query { query_file } => {
+            let contents = match fs::read_to_string(query_file) {
+                Ok(c) => c,
+                Err(e) => {
+                    eprintln!("Error: Failed to read query file {query_file}: {e}");
                     process::exit(1);
                 }
             };
+
+            let (query_str, variables): (String, Option<String>) = match contents.split_once("\n---\n") {
+                Some((q, v)) => {
+                    let vars = if v.trim().is_empty() {
+                        None
+                    } else {
+                        Some(v.trim().to_owned())
+                    };
+                    (q.trim().to_owned(), vars)
+                }
+                None => (contents.trim().to_owned(), None),
+            };
+
+            if query_str.is_empty() {
+                eprintln!("Error: Query file is empty or contains only a separator");
+                process::exit(1);
+            }
+
             cmd_query(&query_str, variables.as_deref())
         }
     };
